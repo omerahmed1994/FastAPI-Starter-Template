@@ -104,16 +104,14 @@ def update_current_user(
     return current_user
 
 
+from app.common.service import paginate
+
 def list_users(
     *, session: Session, skip: int = 0, limit: int = 100
 ) -> tuple[list[User], int]:
     """Return users ordered by creation date and total count."""
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
-
-    statement = select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
-    users = session.exec(statement).all()
-    return users, count
+    statement = select(User).order_by(User.created_at.desc())
+    return paginate(session, statement, skip=skip, limit=limit)
 
 
 def get_user_by_id(*, session: Session, user_id: uuid.UUID) -> User | None:

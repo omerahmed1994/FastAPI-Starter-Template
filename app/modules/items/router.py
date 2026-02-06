@@ -7,13 +7,14 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.deps import CurrentUser, SessionDep
 from app.common.models import Message
+from app.common.schemas import Paginated
 from app.modules.items import service
-from app.modules.items.schemas import ItemCreate, ItemPublic, ItemsPublic, ItemUpdate
+from app.modules.items.schemas import ItemCreate, ItemPublic, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"])
 
 
-@router.get("/", response_model=ItemsPublic)
+@router.get("/", response_model=Paginated[ItemPublic])
 def read_items(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:
@@ -24,7 +25,7 @@ def read_items(
         skip=skip,
         limit=limit,
     )
-    return ItemsPublic(data=items, count=count)
+    return Paginated(data=items, count=count, skip=skip, limit=limit)
 
 
 @router.get("/{id}", response_model=ItemPublic)

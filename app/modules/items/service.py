@@ -9,32 +9,16 @@ from app.modules.items.models import Item
 from app.modules.items.schemas import ItemCreate, ItemUpdate
 
 
+from app.common.service import paginate
+
 def get_items_for_user(
     *, session: Session, owner_id: uuid.UUID | None, is_superuser: bool, skip: int, limit: int
 ) -> tuple[list[Item], int]:
-    if is_superuser:
-        count_statement = select(func.count()).select_from(Item)
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item).order_by(Item.created_at.desc()).offset(skip).limit(limit)
-        )
-        items = session.exec(statement).all()
-    else:
-        count_statement = (
-            select(func.count())
-            .select_from(Item)
-            .where(Item.owner_id == owner_id)
-        )
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item)
-            .where(Item.owner_id == owner_id)
-            .order_by(Item.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        )
-        items = session.exec(statement).all()
-    return items, count
+    """Fetch paginated items for a specific user or all if superuser."""
+    statement = select(Item).order_by(Item.created_at.desc())
+    if not is_superuser:
+        statement = statement.where(Item.owner_id == owner_id)
+    return paginate(session, statement, skip=skip, limit=limit)
 
 
 def get_item(*, session: Session, item_id: uuid.UUID) -> Item | None:

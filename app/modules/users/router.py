@@ -12,6 +12,7 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 from app.common.models import Message
+from app.common.schemas import Paginated
 from app.core.config import settings
 from app.modules.items.models import Item
 from app.modules.users import service
@@ -23,7 +24,6 @@ from app.modules.users.schemas import (
     UserRegister,
     UserUpdate,
     UserUpdateMe,
-    UsersPublic,
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -33,11 +33,11 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
+    response_model=Paginated[UserPublic],
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     users, count = service.list_users(session=session, skip=skip, limit=limit)
-    return UsersPublic(data=users, count=count)
+    return Paginated(data=users, count=count, skip=skip, limit=limit)
 
 
 @router.post(
