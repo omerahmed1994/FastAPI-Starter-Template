@@ -7,9 +7,9 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.deps import CurrentUser, SessionDep
 from app.common.models import Message
-from app.common.schemas import Paginated
+from app.common.dtos import Paginated
 from app.modules.items import service
-from app.modules.items.schemas import ItemCreate, ItemPublic, ItemUpdate
+from app.modules.items.dtos import ItemCreate, ItemPublic, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"])
 

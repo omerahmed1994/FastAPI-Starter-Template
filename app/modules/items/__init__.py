@@ -1,2 +1,2 @@
-"""Items feature module (models, schemas, services, router)."""
+"""Items feature module (models, dtos, services, router)."""
 

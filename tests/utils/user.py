@@ -4,7 +4,7 @@ from sqlmodel import Session
 from app.modules.users import service as users_service
 from app.core.config import settings
 from app.modules.users.models import User
-from app.modules.users.schemas import UserCreate, UserUpdate
+from app.modules.users.dtos import UserCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 
 

@@ -6,7 +6,7 @@ from typing import Any
 from sqlmodel import Session, func, select
 
 from app.modules.items.models import Item
-from app.modules.items.schemas import ItemCreate, ItemUpdate
+from app.modules.items.dtos import ItemCreate, ItemUpdate
 
 
 from app.common.service import paginate

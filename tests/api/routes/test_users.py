@@ -8,7 +8,7 @@ from app.modules.users import service as users_service
 from app.core.config import settings
 from app.core.security import verify_password
 from app.modules.users.models import User
-from app.modules.users.schemas import UserCreate
+from app.modules.users.dtos import UserCreate
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_email, random_lower_string
 

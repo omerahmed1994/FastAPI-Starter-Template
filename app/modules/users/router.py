@@ -12,12 +12,12 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 from app.common.models import Message
-from app.common.schemas import Paginated
+from app.common.dtos import Paginated
 from app.core.config import settings
 from app.modules.items.models import Item
 from app.modules.users import service
 from app.modules.users.models import User
-from app.modules.users.schemas import (
+from app.modules.users.dtos import (
     UpdatePassword,
     UserCreate,
     UserPublic,

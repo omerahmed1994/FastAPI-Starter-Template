@@ -1,2 +1,2 @@
-"""Users feature module (models, schemas, services, router)."""
+"""Users feature module (models, dtos, services, router)."""
 

@@ -2,7 +2,7 @@ from sqlmodel import Session
 
 from app.modules.items import service as items_service
 from app.modules.items.models import Item
-from app.modules.items.schemas import ItemCreate
+from app.modules.items.dtos import ItemCreate
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_lower_string
 

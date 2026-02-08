@@ -1,4 +1,4 @@
-"""Item DTO schemas used for validation and serialization."""
+"""Item DTOs used for validation and serialization."""
 
 import uuid
 from datetime import datetime

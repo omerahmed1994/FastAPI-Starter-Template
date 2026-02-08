@@ -10,9 +10,9 @@ from sqlmodel import Session
 from app.api.deps import SessionDep
 from app.core import security
 from app.core.config import settings
-from app.modules.auth.schemas import NewPassword, Token
+from app.modules.auth.dtos import NewPassword, Token
 from app.modules.users import service as users_service
-from app.modules.users.schemas import UserPublic, UserUpdate
+from app.modules.users.dtos import UserPublic, UserUpdate
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,

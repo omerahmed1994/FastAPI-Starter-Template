@@ -1,2 +1,2 @@
-"""Auth feature module (schemas, services, router)."""
+"""Auth feature module (dtos, services, router)."""
 

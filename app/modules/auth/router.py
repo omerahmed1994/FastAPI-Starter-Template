@@ -9,8 +9,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.common.models import Message
 from app.modules.auth import service
-from app.modules.auth.schemas import NewPassword, Token
-from app.modules.users.schemas import UserPublic
+from app.modules.auth.dtos import NewPassword, Token
+from app.modules.users.dtos import UserPublic
 
 router = APIRouter(prefix="/login", tags=["login"])
 

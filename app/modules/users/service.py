@@ -9,7 +9,7 @@ from sqlmodel import Session, col, delete, func, select
 from app.core.security import get_password_hash, verify_password
 from app.modules.items.models import Item
 from app.modules.users.models import User
-from app.modules.users.schemas import (
+from app.modules.users.dtos import (
     UpdatePassword,
     UserCreate,
     UserUpdate,

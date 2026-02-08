@@ -1,4 +1,4 @@
-"""Auth-related DTOs (Pydantic/SQLModel schemas)."""
+"""Auth-related DTOs (Pydantic/SQLModel dtos)."""
 
 from sqlmodel import Field, SQLModel
 
