@@ -11,7 +11,7 @@ from app.api.deps import SessionDep
 from app.core import security
 from app.core.config import settings
 from app.modules.auth.dtos import NewPassword, Token
-from app.modules.users import service as users_service
+from app.modules.users.service import user_service
 from app.modules.users.dtos import UserPublic, UserUpdate
 from app.utils import (
     generate_password_reset_token,
@@ -24,7 +24,7 @@ from app.utils import (
 def login_access_token(
     session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
-    user = users_service.authenticate_user(
+    user = user_service.authenticate(
         session=session,
         email=form_data.username,
         password=form_data.password,
@@ -47,7 +47,7 @@ def get_current_user_profile(current_user: Any) -> UserPublic:
 
 def send_password_recovery(email: str, session: Session) -> str:
     # Always return the same message to avoid email enumeration
-    user = users_service.get_user_by_email(session=session, email=email)
+    user = user_service.get_by_email(session=session, email=email)
     if user:
         password_reset_token = generate_password_reset_token(email=email)
         email_data = generate_reset_password_email(
@@ -65,12 +65,12 @@ def reset_password(session: Session, body: NewPassword) -> str:
     email = verify_password_reset_token(token=body.token)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
-    user = users_service.get_user_by_email(session=session, email=email)
+    user = user_service.get_by_email(session=session, email=email)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid token")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     user_in_update = UserUpdate(password=body.new_password)
-    users_service.update_user(session=session, db_user=user, user_in=user_in_update)
+    user_service.update_user(session=session, db_obj=user, obj_in=user_in_update)
     return "Password updated successfully"
 

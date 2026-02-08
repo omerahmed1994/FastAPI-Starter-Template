@@ -15,7 +15,7 @@ from app.common.models import Message
 from app.common.dtos import Paginated
 from app.core.config import settings
 from app.modules.items.models import Item
-from app.modules.users import service
+from app.modules.users.service import user_service
 from app.modules.users.models import User
 from app.modules.users.dtos import (
     UpdatePassword,
@@ -36,7 +36,7 @@ router = APIRouter(prefix="/users", tags=["users"])
     response_model=Paginated[UserPublic],
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
-    users, count = service.list_users(session=session, skip=skip, limit=limit)
+    users, count = user_service.get_multi(session=session, skip=skip, limit=limit)
     return Paginated(data=users, count=count, skip=skip, limit=limit)
 
 
@@ -44,14 +44,14 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
 def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
-    user = service.get_user_by_email(session=session, email=user_in.email)
+    user = user_service.get_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
 
-    user = service.create_user(session=session, user_create=user_in)
+    user = user_service.create_user(session=session, obj_in=user_in)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -69,15 +69,15 @@ def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> Any:
     if user_in.email:
-        existing_user = service.get_user_by_email(
+        existing_user = user_service.get_by_email(
             session=session, email=user_in.email
         )
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
-    return service.update_current_user(
-        session=session, current_user=current_user, user_in=user_in
+    return user_service.update(
+        session=session, db_obj=current_user, obj_in=user_in
     )
 
 
@@ -85,7 +85,7 @@ def update_user_me(
 def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
-    service.change_password(session=session, db_user=current_user, body=body)
+    user_service.change_password(session=session, db_user=current_user, body=body)
     return Message(message="Password updated successfully")
 
 
@@ -96,20 +96,20 @@ def read_user_me(current_user: CurrentUser) -> Any:
 
 @router.delete("/me", response_model=Message)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
-    service.delete_current_user(session=session, current_user=current_user)
+    user_service.delete_with_items(session=session, current_user=current_user, user_id=current_user.id)
     return Message(message="User deleted successfully")
 
 
 @router.post("/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
-    user = service.get_user_by_email(session=session, email=user_in.email)
+    user = user_service.get_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = service.create_user(session=session, user_create=user_create)
+    user = user_service.create_user(session=session, obj_in=user_create)
     return user
 
 
@@ -117,7 +117,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    user = service.get_user_by_id(session=session, user_id=user_id)
+    user = user_service.get(session=session, id=user_id)
     if user == current_user:
         return user
     if not current_user.is_superuser:
@@ -141,14 +141,14 @@ def update_user(
     user_id: uuid.UUID,
     user_in: UserUpdate,
 ) -> Any:
-    db_user = service.get_user_by_id(session=session, user_id=user_id)
+    db_user = user_service.get(session=session, id=user_id)
     if not db_user:
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
     if user_in.email:
-        existing_user = service.get_user_by_email(
+        existing_user = user_service.get_by_email(
             session=session, email=user_in.email
         )
         if existing_user and existing_user.id != user_id:
@@ -156,7 +156,7 @@ def update_user(
                 status_code=409, detail="User with this email already exists"
             )
 
-    db_user = service.update_user(session=session, db_user=db_user, user_in=user_in)
+    db_user = user_service.update_user(session=session, db_obj=db_user, obj_in=user_in)
     return db_user
 
 
@@ -164,6 +164,6 @@ def update_user(
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
-    service.delete_user(session=session, current_user=current_user, user_id=user_id)
+    user_service.delete_with_items(session=session, current_user=current_user, user_id=user_id)
     return Message(message="User deleted successfully")
 

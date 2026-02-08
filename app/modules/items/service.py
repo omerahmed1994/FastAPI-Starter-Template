@@ -1,52 +1,43 @@
 """Item-related business logic and database interactions."""
 
 import uuid
-from typing import Any
+from typing import List, Tuple
 
-from sqlmodel import Session, func, select
+from sqlmodel import Session, select
 
-from app.modules.items.models import Item
+from app.common.service import BaseService, paginate
 from app.modules.items.dtos import ItemCreate, ItemUpdate
+from app.modules.items.models import Item
 
 
-from app.common.service import paginate
+class ItemService(BaseService[Item, ItemCreate, ItemUpdate]):
+    """Item service for handling business logic for items."""
 
-def get_items_for_user(
-    *, session: Session, owner_id: uuid.UUID | None, is_superuser: bool, skip: int, limit: int
-) -> tuple[list[Item], int]:
-    """Fetch paginated items for a specific user or all if superuser."""
-    statement = select(Item).order_by(Item.created_at.desc())
-    if not is_superuser:
-        statement = statement.where(Item.owner_id == owner_id)
-    return paginate(session, statement, skip=skip, limit=limit)
+    def get_by_owner(
+        self,
+        session: Session,
+        *,
+        owner_id: uuid.UUID,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[Item], int]:
+        """Fetch paginated items belonging to a specific owner."""
+        statement = (
+            select(self.model)
+            .where(self.model.owner_id == owner_id)
+            .offset(skip)
+            .limit(limit)
+        )
+        # Use common pagination if complex, or simple multi here
+        return self.get_multi_by_owner(session, owner_id=owner_id, skip=skip, limit=limit)
 
-
-def get_item(*, session: Session, item_id: uuid.UUID) -> Item | None:
-    return session.get(Item, item_id)
-
-
-def create_item(
-    *, session: Session, owner_id: uuid.UUID, item_in: ItemCreate
-) -> Item:
-    db_item = Item.model_validate(item_in, update={"owner_id": owner_id})
-    session.add(db_item)
-    session.commit()
-    session.refresh(db_item)
-    return db_item
-
-
-def update_item(
-    *, session: Session, db_item: Item, item_in: ItemUpdate
-) -> Item:
-    update_dict = item_in.model_dump(exclude_unset=True)
-    db_item.sqlmodel_update(update_dict)
-    session.add(db_item)
-    session.commit()
-    session.refresh(db_item)
-    return db_item
+    def get_multi_by_owner(
+        self, session: Session, *, owner_id: uuid.UUID, skip: int = 0, limit: int = 100
+    ) -> Tuple[List[Item], int]:
+        """Custom fetch for owner-specific items with counts."""
+        statement = select(self.model).where(self.model.owner_id == owner_id)
+        return paginate(session, statement, skip=skip, limit=limit)
 
 
-def delete_item(*, session: Session, db_item: Item) -> None:
-    session.delete(db_item)
-    session.commit()
-
+# Export an instance of ItemService
+item_service = ItemService(Item)

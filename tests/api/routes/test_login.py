@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
-from app.modules.users import service as users_service
+from app.modules.users.service import user_service
 from app.modules.users.models import User
 from app.modules.users.dtos import UserCreate
 from app.utils import generate_password_reset_token
@@ -92,7 +92,7 @@ def test_reset_password(client: TestClient, db: Session) -> None:
         is_active=True,
         is_superuser=False,
     )
-    user = users_service.create_user(session=db, user_create=user_create)
+    user = user_service.create_user(session=db, obj_in=user_create)
     token = generate_password_reset_token(email=email)
     headers = user_authentication_headers(client=client, email=email, password=password)
     data = {"new_password": new_password, "token": token}
